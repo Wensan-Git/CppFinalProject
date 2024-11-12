@@ -1,0 +1,7 @@
+# ninja log v6
+0	735	1731380488675997007	CMakeFiles/Project.dir/main.cpp.o	da419379817dcb2c
+2	857	1731380488677289550	CMakeFiles/Project.dir/TestFramework.cpp.o	f16439c8bebf7ca6
+1	898	1731380488676935341	CMakeFiles/Project.dir/MyTests.cpp.o	6d540ba559d95a5c
+899	1099	1731380489574071096	Project	6c36447de5da3c21
+7	978	1731380634390932937	CMakeFiles/Project.dir/MyTests.cpp.o	6d540ba559d95a5c
+978	1176	1731380635362084390	Project	6c36447de5da3c21
