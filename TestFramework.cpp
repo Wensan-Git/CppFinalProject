@@ -34,8 +34,23 @@ void TestRunner::run() {
 
         // Run each test case
         for (auto& testCase : suite->testCases) {
+            // BeforeEach
+            if (suite->fixture) {
+                suite->fixture->BeforeEach();
+            }
+
             std::cout << "Running Test Case: " << testCase.first << std::endl;
             testCase.second(suite->fixture.get());
+
+            // AfterEach
+            if (suite->fixture) {
+                suite->fixture->AfterEach();
+            }
+        }
+
+        // AfterAll
+        if (suite->fixture) {
+            suite->fixture->AfterAll();
         }
 
         std::cout << std::endl;

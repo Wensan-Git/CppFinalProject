@@ -5,10 +5,7 @@
 #include <algorithm>
 #include <numeric>
 #include <chrono>
-
-// Note, this is a very very very initial version of our code. We have added explanation as detailed as possible for Mike to understand. Might be bugs,
-// But Wensannnnnn brother will fix it!
-
+#include <thread>
 
 // Define the test suite and fixture
 TEST_SUITE(ArrayTestSuite) {
@@ -16,6 +13,9 @@ public:
     std::vector<int> largeArray; // Shared state within the fixture
 
     void BeforeAll() override;
+    void AfterAll() override;
+    void BeforeEach() override;
+    void AfterEach() override;
 };
 
 // Implement the BeforeAll function
@@ -25,6 +25,27 @@ BEFORE_ALL(ArrayTestSuite) {
     largeArray.resize(1'000'000);
     std::iota(largeArray.begin(), largeArray.end(), 1); // Fill with values from 1 to 1,000,000
 }
+
+// Implement the AfterAll function
+AFTER_ALL(ArrayTestSuite) {
+    std::cout << "Executing AfterAll: Clearing large array." << std::endl;
+    largeArray.clear();
+}
+
+// Implement the BeforeEach function
+BEFORE_EACH(ArrayTestSuite) {
+    std::cout << "Executing BeforeEach: Before test case." << std::endl;
+    // Any setup before each test
+}
+
+// Implement the AfterEach function
+AFTER_EACH(ArrayTestSuite) {
+    std::cout << "Executing AfterEach: After test case." << std::endl;
+    // Any cleanup after each test
+}
+
+// Register the test suite after the fixture class is fully defined
+REGISTER_TEST_SUITE(ArrayTestSuite);
 
 // Define test cases
 
@@ -95,8 +116,6 @@ TEST_CASE(ArrayTestSuite, TestArrayPerformance) {
 }
 
 // Test case to sum array elements using multiple threads
-#include <thread>
-
 TEST_CASE(ArrayTestSuite, TestArrayMultiThreadSum) {
     std::cout << "In TestArrayMultiThreadSum" << std::endl;
     const size_t numThreads = 4;

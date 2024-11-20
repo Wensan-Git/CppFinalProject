@@ -6,12 +6,16 @@
 #include <vector>
 #include <functional>
 #include <memory>
+#include <cstdio> // For printf
 
 // Base class for test fixtures
 class TestFixture {
 public:
     virtual ~TestFixture() = default;
     virtual void BeforeAll() {}
+    virtual void AfterAll() {}
+    virtual void BeforeEach() {}
+    virtual void AfterEach() {}
 };
 
 // Class representing a test suite
@@ -40,17 +44,27 @@ private:
 
 // Macros to simplify test suite and test case definitions
 #define TEST_SUITE(suiteName) \
-    class suiteName##_Fixture; \
+    class suiteName##_Fixture : public TestFixture
+
+#define REGISTER_TEST_SUITE(suiteName) \
     std::shared_ptr<TestSuite> suiteName = std::make_shared<TestSuite>(#suiteName, std::make_shared<suiteName##_Fixture>()); \
     static struct suiteName##_Registrar { \
         suiteName##_Registrar() { \
             TestRunner::getInstance().addTestSuite(suiteName); \
         } \
-    } suiteName##_registrar; \
-    class suiteName##_Fixture : public TestFixture
+    } suiteName##_registrar;
 
 #define BEFORE_ALL(suiteName) \
     void suiteName##_Fixture::BeforeAll()
+
+#define AFTER_ALL(suiteName) \
+    void suiteName##_Fixture::AfterAll()
+
+#define BEFORE_EACH(suiteName) \
+    void suiteName##_Fixture::BeforeEach()
+
+#define AFTER_EACH(suiteName) \
+    void suiteName##_Fixture::AfterEach()
 
 #define TEST_CASE(suiteName, testName) \
     void suiteName##_##testName(suiteName##_Fixture* fixture); \
