@@ -7,83 +7,169 @@
 #include <chrono>
 #include <thread>
 #include <stdexcept>
+#include <mutex>
+#include <cmath>
+#include <random>
+
+// Helper functions first
+long long computeLargePrime(int n) {
+    int count = 0;
+    long long num = 2;
+    while (count < n) {
+        bool isPrime = true;
+        for (long long i = 2; i <= std::sqrt(num); ++i) {
+            if (num % i == 0) {
+                isPrime = false;
+                break;
+            }
+        }
+        if (isPrime) {
+            ++count;
+        }
+        ++num;
+    }
+    return num - 1;
+}
+
+long long computeFactorial(int n) {
+    long long result = 1;
+    for (int i = 2; i <= n; ++i) {
+        result *= i;
+    }
+    return result;
+}
+
+double computeIntegral(double a, double b, int n) {
+    auto f = [](double x) { return std::sin(x) * std::exp(-x); };
+    double h = (b - a) / n;
+    double sum = 0.5 * (f(a) + f(b));
+    for (int i = 1; i < n; ++i) {
+        sum += f(a + i * h);
+    }
+    return h * sum;
+}
 
 // Define the test suite and fixture
-TEST_SUITE(ArrayTestSuite) {
+TEST_SUITE(HeavyComputationTestSuite) {
 public:
-    std::vector<int> largeArray; // Shared state within the fixture
-
     void BeforeAll() override;
     void AfterAll() override;
     void BeforeEach() override;
     void AfterEach() override;
+
+    std::mutex resourceMutex;
+    int sharedCounter = 0;
 };
 
-// Implement the BeforeAll function
-BEFORE_ALL(ArrayTestSuite) {
-    std::cout << "Executing BeforeAll: Setting up large array." << std::endl;
-    // Initialize a large array with 1 million integers
-    largeArray.resize(1'000'000);
-    std::iota(largeArray.begin(), largeArray.end(), 1); // Fill with values from 1 to 1,000,000
+// Register the test suite
+REGISTER_TEST_SUITE(HeavyComputationTestSuite);
+
+// Implement fixture methods
+BEFORE_ALL(HeavyComputationTestSuite) {
+    std::cout << "Executing BeforeAll: Setting up resources." << std::endl;
 }
 
-// Implement the AfterAll function
-AFTER_ALL(ArrayTestSuite) {
-    std::cout << "Executing AfterAll: Clearing large array." << std::endl;
-    largeArray.clear();
+AFTER_ALL(HeavyComputationTestSuite) {
+    std::cout << "Executing AfterAll: Cleaning up resources." << std::endl;
 }
 
-// Implement the BeforeEach function
-BEFORE_EACH(ArrayTestSuite) {
-    std::cout << "Executing BeforeEach: Before test case." << std::endl;
-    // Any setup before each test
+BEFORE_EACH(HeavyComputationTestSuite) {
 }
 
-// Implement the AfterEach function
-AFTER_EACH(ArrayTestSuite) {
-    std::cout << "Executing AfterEach: After test case." << std::endl;
-    // Any cleanup after each test
+AFTER_EACH(HeavyComputationTestSuite) {
 }
 
-// Register the test suite after the fixture class is fully defined
-REGISTER_TEST_SUITE(ArrayTestSuite);
-
-// Define test cases
-
-// Regular test case
-TEST_CASE(ArrayTestSuite, TestArraySum) {
-    std::cout << "In TestArraySum" << std::endl;
-    long long expectedSum = static_cast<long long>(fixture->largeArray.size()) * (fixture->largeArray.size() + 1) / 2;
-    long long actualSum = std::accumulate(fixture->largeArray.begin(), fixture->largeArray.end(), 0LL);
-    ASSERT_EQ(expectedSum, actualSum);
+// Regular test cases
+CONCURRENT_TEST_CASE(HeavyComputationTestSuite, TestComputePrime1) {
+    std::cout << "In TestComputePrime1" << std::endl;
+    int n = 5000;
+    long long prime = computeLargePrime(n);
+    ASSERT_TRUE(prime > 0);
 }
 
-// Disabled test case
-DISABLED_TEST_CASE(ArrayTestSuite, DisabledTest) {
+CONCURRENT_TEST_CASE(HeavyComputationTestSuite, TestComputePrime2) {
+    std::cout << "In TestComputePrime2" << std::endl;
+    int n = 5000;
+    long long prime = computeLargePrime(n);
+    ASSERT_TRUE(prime > 0);
+}
+
+TEST_CASE(HeavyComputationTestSuite, TestComputePrimeSequential) {
+    std::cout << "In TestComputePrimeSequential" << std::endl;
+    int n = 5000;
+    long long prime = computeLargePrime(n);
+    ASSERT_TRUE(prime > 0);
+}
+
+DISABLED_TEST_CASE(HeavyComputationTestSuite, TestDisabled) {
     std::cout << "This test should not run." << std::endl;
-    ASSERT_TRUE(false); // This assertion should not be reached
+    ASSERT_TRUE(false);
 }
 
-// Timeout test case
-TIMEOUT_TEST_CASE(ArrayTestSuite, TestTimeout, 1000) {
-    std::cout << "In TestTimeout" << std::endl;
-    // Simulate long-running operation
-    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-    ASSERT_TRUE(true); // This assertion may not be reached if timeout occurs
-}
-
-// Repeated test case
-REPEATED_TEST_CASE(ArrayTestSuite, TestRepeated, 3) {
-    std::cout << "In TestRepeated, repetition " << repetition << std::endl;
-    ASSERT_TRUE(repetition >= 1 && repetition <= 3);
-}
-
-// Expect exception test case
-EXPECT_EXCEPTION_TEST_CASE(ArrayTestSuite, TestExpectException, std::out_of_range) {
+EXPECT_EXCEPTION_TEST_CASE(HeavyComputationTestSuite, TestExpectException, std::runtime_error) {
     std::cout << "In TestExpectException" << std::endl;
-    // This should throw std::out_of_range
-    int value = fixture->largeArray.at(fixture->largeArray.size()); // Out of range
-    (void)value; // Suppress unused variable warning
+    throw std::runtime_error("Expected exception");
 }
 
-// Other test cases remain the same...
+TIMEOUT_TEST_CASE(HeavyComputationTestSuite, TestTimeout, 500) {
+    std::cout << "In TestTimeout" << std::endl;
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    ASSERT_TRUE(true);
+}
+
+// Define the nondeterministic test case
+void HeavyComputationTestSuite_TestNondeterministic(HeavyComputationTestSuite_Fixture* fixture, int repetition) {
+    std::mt19937 rng(std::random_device{}());
+    std::uniform_int_distribution<int> dist(100, 300);
+    int delay = dist(rng);
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(delay));
+
+    {
+        std::lock_guard<std::mutex> lock(fixture->resourceMutex);
+        fixture->sharedCounter++;
+    }
+
+    std::cout << "Repetition " << repetition << ": Slept for " << delay << " ms, Counter = " << fixture->sharedCounter << std::endl;
+    ASSERT_TRUE(true);
+}
+
+// Register the nondeterministic test case
+static struct HeavyComputationTestSuite_TestNondeterministic_Registrar {
+    HeavyComputationTestSuite_TestNondeterministic_Registrar() {
+        TestCase testCase("TestNondeterministic",
+            [](TestFixture* baseFixture, int repetition) {
+                HeavyComputationTestSuite_TestNondeterministic(
+                    static_cast<HeavyComputationTestSuite_Fixture*>(baseFixture),
+                    repetition
+                );
+            }
+        );
+        testCase.repetitions = 5;
+        testCase.isNondeterministic = true;
+        HeavyComputationTestSuite->addTestCase(testCase);
+    }
+} HeavyComputationTestSuite_TestNondeterministic_registrar;
+
+// Define the repeated test case
+void HeavyComputationTestSuite_TestRepeated(HeavyComputationTestSuite_Fixture* fixture, int repetition) {
+    std::cout << "In TestRepeated, Repetition " << repetition << std::endl;
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    ASSERT_TRUE(true);
+}
+
+// Register the repeated test case
+static struct HeavyComputationTestSuite_TestRepeated_Registrar {
+    HeavyComputationTestSuite_TestRepeated_Registrar() {
+        TestCase testCase("TestRepeated",
+            [](TestFixture* baseFixture, int repetition) {
+                HeavyComputationTestSuite_TestRepeated(
+                    static_cast<HeavyComputationTestSuite_Fixture*>(baseFixture),
+                    repetition
+                );
+            }
+        );
+        testCase.repetitions = 3;
+        HeavyComputationTestSuite->addTestCase(testCase);
+    }
+} HeavyComputationTestSuite_TestRepeated_registrar;
