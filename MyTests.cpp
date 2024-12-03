@@ -10,6 +10,10 @@
 #include <mutex>
 #include <cmath>
 #include <random>
+#include <string>
+#include <sstream>
+
+
 
 // Helper functions first
 long long computeLargePrime(int n) {
@@ -138,12 +142,12 @@ void HeavyComputationTestSuite_TestNondeterministic(HeavyComputationTestSuite_Fi
 static struct HeavyComputationTestSuite_TestNondeterministic_Registrar {
     HeavyComputationTestSuite_TestNondeterministic_Registrar() {
         TestCase testCase("TestNondeterministic",
-            [](TestFixture* baseFixture, int repetition) {
-                HeavyComputationTestSuite_TestNondeterministic(
-                    static_cast<HeavyComputationTestSuite_Fixture*>(baseFixture),
-                    repetition
-                );
-            }
+                          [](TestFixture* baseFixture, int repetition) {
+                              HeavyComputationTestSuite_TestNondeterministic(
+                                      static_cast<HeavyComputationTestSuite_Fixture*>(baseFixture),
+                                      repetition
+                              );
+                          }
         );
         testCase.repetitions = 5;
         testCase.isNondeterministic = true;
@@ -162,14 +166,56 @@ void HeavyComputationTestSuite_TestRepeated(HeavyComputationTestSuite_Fixture* f
 static struct HeavyComputationTestSuite_TestRepeated_Registrar {
     HeavyComputationTestSuite_TestRepeated_Registrar() {
         TestCase testCase("TestRepeated",
-            [](TestFixture* baseFixture, int repetition) {
-                HeavyComputationTestSuite_TestRepeated(
-                    static_cast<HeavyComputationTestSuite_Fixture*>(baseFixture),
-                    repetition
-                );
-            }
+                          [](TestFixture* baseFixture, int repetition) {
+                              HeavyComputationTestSuite_TestRepeated(
+                                      static_cast<HeavyComputationTestSuite_Fixture*>(baseFixture),
+                                      repetition
+                              );
+                          }
         );
         testCase.repetitions = 3;
         HeavyComputationTestSuite->addTestCase(testCase);
     }
 } HeavyComputationTestSuite_TestRepeated_registrar;
+
+
+// Define a class to be mocked
+class Calculator {
+public:
+    virtual ~Calculator() = default;
+    virtual int add(int a, int b) {
+        return a + b;
+    }
+    virtual int multiply(int a, int b) {
+        return a * b;
+    }
+};
+
+// Define a mock class inheriting from Calculator and Mock
+class MockCalculator : public Calculator, public Mock {
+public:
+    MOCK_METHOD2(add, int, int, int);
+    MOCK_METHOD2(multiply, int, int, int);
+};
+TEST_CASE(HeavyComputationTestSuite, TestMocking) {
+    std::cout << "In TestMocking" << std::endl;
+
+    MockCalculator mockCalc;
+
+    // Set up mock behavior for the 'add' method
+    mockCalc.add_mock = [](int a, int b) {
+        return a + b + 1; // Intentional bug to test the mock
+    };
+
+    // Use the mock object
+    int result = mockCalc.add(2, 3);
+
+    // Verify that the method was called with expected arguments
+    ASSERT_TRUE(verifyCall(mockCalc, "add", {"2", "3"}));
+
+    // Verify the result (should be 6 due to the mock behavior)
+    ASSERT_EQ(6, result);
+
+    // Verify the number of times the method was called
+    ASSERT_EQ(1, getCallCount(mockCalc, "add"));
+}

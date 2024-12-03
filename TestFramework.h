@@ -184,15 +184,121 @@ private:
     } suiteName##_REPEAT_##testName##_registrar; \
     void suiteName##_##testName(suiteName##_Fixture* fixture, int repetition)
 
-// Assertion macros
-#define ASSERT_TRUE(condition) \
-    if (!(condition)) { \
-        printf("Assertion failed in %s at line %d: %s\n", __FILE__, __LINE__, #condition); \
+
+
+// ... (existing code above)
+
+#include <functional>
+#include <sstream>
+#include <vector>
+#include <string>
+
+// Base class for mocks
+class Mock {
+public:
+    virtual ~Mock() = default;
+
+    void clearExpectations() {
+        callLog.clear();
     }
 
+    void recordCall(const std::string& methodName, const std::vector<std::string>& args) {
+        callLog.push_back({methodName, args});
+    }
+
+    struct CallInfo {
+        std::string methodName;
+        std::vector<std::string> args;
+    };
+
+    std::vector<CallInfo> callLog;
+};
+
+// Helper function to convert arguments to strings for recording
+template<typename T>
+std::string toString(const T& value) {
+    std::ostringstream oss;
+    oss << value;
+    return oss.str();
+}
+
+// Overload for std::string
+inline std::string toString(const std::string& value) {
+    return value;
+}
+
+// Macro to declare a mock method with no arguments
+#define MOCK_METHOD0(methodName, returnType) \
+    std::function<returnType()> methodName##_mock; \
+    virtual returnType methodName() override { \
+        std::vector<std::string> args; \
+        this->recordCall(#methodName, args); \
+        if (methodName##_mock) \
+            return methodName##_mock(); \
+        else \
+            return returnType(); \
+    }
+
+// Macro to declare a mock method with one argument
+#define MOCK_METHOD1(methodName, returnType, Arg1Type) \
+    std::function<returnType(Arg1Type)> methodName##_mock; \
+    virtual returnType methodName(Arg1Type arg1) override { \
+        std::vector<std::string> args = {toString(arg1)}; \
+        this->recordCall(#methodName, args); \
+        if (methodName##_mock) \
+            return methodName##_mock(arg1); \
+        else \
+            return returnType(); \
+    }
+
+// Macro to declare a mock method with two arguments
+#define MOCK_METHOD2(methodName, returnType, Arg1Type, Arg2Type) \
+    std::function<returnType(Arg1Type, Arg2Type)> methodName##_mock; \
+    virtual returnType methodName(Arg1Type arg1, Arg2Type arg2) override { \
+        std::vector<std::string> args = {toString(arg1), toString(arg2)}; \
+        this->recordCall(#methodName, args); \
+        if (methodName##_mock) \
+            return methodName##_mock(arg1, arg2); \
+        else \
+            return returnType(); \
+    }
+
+// You can add more MOCK_METHOD macros for methods with more arguments as needed.
+
+// Function to verify that a method was called with specific arguments
+inline bool verifyCall(Mock& mock, const std::string& methodName, const std::vector<std::string>& expectedArgs) {
+    for (const auto& call : mock.callLog) {
+        if (call.methodName == methodName && call.args == expectedArgs) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// Function to verify the number of times a method was called
+inline int getCallCount(Mock& mock, const std::string& methodName) {
+    int count = 0;
+    for (const auto& call : mock.callLog) {
+        if (call.methodName == methodName) {
+            count++;
+        }
+    }
+    return count;
+}
+
+// Modify assertion macros to provide better output
+#undef ASSERT_TRUE
+#define ASSERT_TRUE(condition) \
+    if (!(condition)) { \
+        std::cout << "Assertion failed in " << __FILE__ << " at line " << __LINE__ \
+                  << ": " << #condition << std::endl; \
+    }
+
+#undef ASSERT_EQ
 #define ASSERT_EQ(expected, actual) \
     if ((expected) != (actual)) { \
-        printf("Assertion failed in %s at line %d: Expected %s == %s\n", __FILE__, __LINE__, #expected, #actual); \
+        std::cout << "Assertion failed in " << __FILE__ << " at line " << __LINE__ \
+                  << ": Expected " << (expected) << " == " << (actual) << std::endl; \
     }
 
 #endif // TESTFRAMEWORK_H
