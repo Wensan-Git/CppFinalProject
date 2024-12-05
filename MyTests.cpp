@@ -179,43 +179,79 @@ static struct HeavyComputationTestSuite_TestRepeated_Registrar {
 } HeavyComputationTestSuite_TestRepeated_registrar;
 
 
-// Define a class to be mocked
-class Calculator {
+// More complex mocked class
+class AdvancedCalculator {
 public:
-    virtual ~Calculator() = default;
-    virtual int add(int a, int b) {
-        return a + b;
+    virtual ~AdvancedCalculator() = default;
+    virtual int add3(int a, int b, int c) {
+        return a + b + c;
     }
-    virtual int multiply(int a, int b) {
-        return a * b;
+    virtual std::string concatStrings(const std::string& s1, const std::string& s2, const std::string& s3) {
+        return s1 + s2 + s3;
     }
+    virtual double multiplyMany(double a, double b, double c, double d) {
+        return a * b * c * d;
+    }
+    virtual void noArgsMethod() { }
 };
 
-// Define a mock class inheriting from Calculator and Mock
-class MockCalculator : public Calculator, public Mock {
+class MockAdvancedCalculator : public AdvancedCalculator, public Mock {
 public:
-    MOCK_METHOD2(add, int, int, int);
-    MOCK_METHOD2(multiply, int, int, int);
+    MOCK_METHOD(add3, int, (int a, int b, int c), (a, b, c));
+    MOCK_METHOD(concatStrings, std::string, (const std::string& s1, const std::string& s2, const std::string& s3), (s1, s2, s3));
+    MOCK_METHOD(multiplyMany, double, (double a, double b, double c, double d), (a, b, c, d));
+    MOCK_METHOD(noArgsMethod, void, (), ());
 };
-TEST_CASE(HeavyComputationTestSuite, TestMocking) {
-    std::cout << "In TestMocking" << std::endl;
 
-    MockCalculator mockCalc;
+TEST_CASE(HeavyComputationTestSuite, TestAdvancedMockingAdd3) {
+    std::cout << "In TestAdvancedMockingAdd3" << std::endl;
 
-    // Set up mock behavior for the 'add' method
-    mockCalc.add_mock = [](int a, int b) {
-        return a + b + 1; // Intentional bug to test the mock
+    MockAdvancedCalculator mockCalc;
+    mockCalc.add3_mock = [](int a, int b, int c) {
+        return a + b + c + 10;
     };
 
-    // Use the mock object
-    int result = mockCalc.add(2, 3);
+    int result = mockCalc.add3(1, 2, 3);
+    ASSERT_TRUE(verifyCall(mockCalc, "add3", {"1", "2", "3"}));
+    ASSERT_EQ(16, result);
+}
 
-    // Verify that the method was called with expected arguments
-    ASSERT_TRUE(verifyCall(mockCalc, "add", {"2", "3"}));
+TEST_CASE(HeavyComputationTestSuite, TestAdvancedMockingConcatStrings) {
+    std::cout << "In TestAdvancedMockingConcatStrings" << std::endl;
 
-    // Verify the result (should be 6 due to the mock behavior)
-    ASSERT_EQ(6, result);
+    MockAdvancedCalculator mockCalc;
+    mockCalc.concatStrings_mock = [](const std::string& s1, const std::string& s2, const std::string& s3) {
+        return s1 + "-" + s2 + "-" + s3;
+    };
 
-    // Verify the number of times the method was called
-    ASSERT_EQ(1, getCallCount(mockCalc, "add"));
+    std::string result = mockCalc.concatStrings("Hello", "Mock", "World");
+    ASSERT_TRUE(verifyCall(mockCalc, "concatStrings", {"Hello", "Mock", "World"}));
+    ASSERT_EQ("Hello-Mock-World", result);
+}
+
+TEST_CASE(HeavyComputationTestSuite, TestAdvancedMockingMultiplyMany) {
+    std::cout << "In TestAdvancedMockingMultiplyMany" << std::endl;
+
+    MockAdvancedCalculator mockCalc;
+    mockCalc.multiplyMany_mock = [](double a, double b, double c, double d) {
+        return (a * b * c * d) + 5.0;
+    };
+
+    double result = mockCalc.multiplyMany(2.0, 3.0, 4.0, 5.0);
+    ASSERT_TRUE(verifyCall(mockCalc, "multiplyMany", {"2", "3", "4", "5"}));
+    ASSERT_EQ(125.0, result);
+}
+
+TEST_CASE(HeavyComputationTestSuite, TestAdvancedMockingNoArgsMethod) {
+    std::cout << "In TestAdvancedMockingNoArgsMethod" << std::endl;
+
+    MockAdvancedCalculator mockCalc;
+    bool called = false;
+    mockCalc.noArgsMethod_mock = [&]() {
+        called = true;
+    };
+
+    mockCalc.noArgsMethod();
+    ASSERT_TRUE(verifyCall(mockCalc, "noArgsMethod", {}));
+    ASSERT_TRUE(called);
 }

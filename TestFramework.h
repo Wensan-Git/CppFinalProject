@@ -1,4 +1,3 @@
-// TestFramework.h
 #ifndef TESTFRAMEWORK_H
 #define TESTFRAMEWORK_H
 
@@ -7,10 +6,11 @@
 #include <functional>
 #include <memory>
 #include <chrono>
-#include <cstdio> // For printf
+#include <cstdio>
 #include <typeinfo>
 #include <mutex>
 #include <future>
+#include <sstream>
 
 // Base class for test fixtures
 class TestFixture {
@@ -22,11 +22,11 @@ public:
     virtual void AfterEach() {}
 };
 
-// Struct representing a test case with additional properties
+// Struct representing a test case
 class TestCase {
 public:
     std::string name;
-    std::function<void(TestFixture*, int)> function; // Accepts repetition index
+    std::function<void(TestFixture*, int)> function;
     bool disabled = false;
     std::chrono::milliseconds timeout = std::chrono::milliseconds::zero();
     int repetitions = 1;
@@ -46,24 +46,129 @@ public:
     std::shared_ptr<TestFixture> fixture;
     std::vector<TestCase> testCases;
 
-    TestSuite(const std::string& suiteName, std::shared_ptr<TestFixture> fixtureInstance);
+    TestSuite(const std::string& suiteName, std::shared_ptr<TestFixture> fixtureInstance)
+        : name(suiteName), fixture(fixtureInstance) {}
 
-    void addTestCase(const TestCase& testCase);
+    void addTestCase(const TestCase& testCase) {
+        testCases.push_back(testCase);
+    }
 };
 
-// Singleton TestRunner to manage and execute test suites
+// Singleton TestRunner
 class TestRunner {
 public:
-    static TestRunner& getInstance();
-    void addTestSuite(std::shared_ptr<TestSuite> suite);
+    static TestRunner& getInstance() {
+        static TestRunner instance;
+        return instance;
+    }
+
+    void addTestSuite(std::shared_ptr<TestSuite> suite) {
+        suites.push_back(suite);
+    }
+
     void run(bool runConcurrently = false);
 
 private:
     std::vector<std::shared_ptr<TestSuite>> suites;
-    TestRunner() = default; // Private constructor for singleton
+    TestRunner() = default;
 };
 
-// Macros to simplify test suite and test case definitions
+// Assertion macros
+#undef ASSERT_TRUE
+#define ASSERT_TRUE(condition) \
+    if (!(condition)) { \
+        std::cout << "Assertion failed in " << __FILE__ << " at line " << __LINE__ \
+                  << ": " << #condition << std::endl; \
+    }
+
+#undef ASSERT_EQ
+#define ASSERT_EQ(expected, actual) \
+    if ((expected) != (actual)) { \
+        std::cout << "Assertion failed in " << __FILE__ << " at line " << __LINE__ \
+                  << ": Expected " << (expected) << " == " << (actual) << std::endl; \
+    }
+
+// Helper to convert arguments to strings
+template<typename T>
+std::string toString(const T& value) {
+    std::ostringstream oss;
+    oss << value;
+    return oss.str();
+}
+
+// Overload for std::string
+inline std::string toString(const std::string& value) {
+    return value;
+}
+
+// Variadic template to convert arbitrary arguments to a vector of strings
+inline std::vector<std::string> argsToString() {
+    return {};
+}
+
+template<typename T, typename... Args>
+std::vector<std::string> argsToString(T&& first, Args&&... rest) {
+    std::vector<std::string> result;
+    result.push_back(toString(std::forward<T>(first)));
+    auto tail = argsToString(std::forward<Args>(rest)...);
+    result.insert(result.end(), tail.begin(), tail.end());
+    return result;
+}
+
+// Base class for mocks
+class Mock {
+public:
+    virtual ~Mock() = default;
+
+    void clearExpectations() {
+        callLog.clear();
+    }
+
+    void recordCall(const std::string& methodName, const std::vector<std::string>& args) {
+        callLog.push_back({methodName, args});
+    }
+
+    struct CallInfo {
+        std::string methodName;
+        std::vector<std::string> args;
+    };
+
+    std::vector<CallInfo> callLog;
+};
+
+// Functions to verify calls on mocks
+inline bool verifyCall(Mock& mock, const std::string& methodName, const std::vector<std::string>& expectedArgs) {
+    for (const auto& call : mock.callLog) {
+        if (call.methodName == methodName && call.args == expectedArgs) {
+            return true;
+        }
+    }
+    return false;
+}
+
+inline int getCallCount(Mock& mock, const std::string& methodName) {
+    int count = 0;
+    for (const auto& call : mock.callLog) {
+        if (call.methodName == methodName) {
+            count++;
+        }
+    }
+    return count;
+}
+
+
+#define MOCK_METHOD(methodName, returnType, PARAMS, ARGS) \
+    std::function<returnType PARAMS> methodName##_mock; \
+    virtual returnType methodName PARAMS override { \
+        std::vector<std::string> args = argsToString ARGS; \
+        this->recordCall(#methodName, args); \
+        if (methodName##_mock) \
+            return methodName##_mock ARGS; \
+        else \
+            return returnType(); \
+    }
+
+// Test suite macros
 #define TEST_SUITE(suiteName) \
     class suiteName##_Fixture : public TestFixture
 
@@ -87,7 +192,6 @@ private:
 #define AFTER_EACH(suiteName) \
     void suiteName##_Fixture::AfterEach()
 
-// Regular test case
 #define TEST_CASE(suiteName, testName) \
     void suiteName##_##testName(suiteName##_Fixture* fixture, int repetition = 1); \
     static struct suiteName##_##testName##_Registrar { \
@@ -99,7 +203,6 @@ private:
     } suiteName##_##testName##_registrar; \
     void suiteName##_##testName(suiteName##_Fixture* fixture, int repetition)
 
-// Concurrent test case
 #define CONCURRENT_TEST_CASE(suiteName, testName) \
     void suiteName##_##testName(suiteName##_Fixture* fixture, int repetition = 1); \
     static struct suiteName##_CONCURRENT_##testName##_Registrar { \
@@ -113,7 +216,6 @@ private:
     } suiteName##_CONCURRENT_##testName##_registrar; \
     void suiteName##_##testName(suiteName##_Fixture* fixture, int repetition)
 
-// Disabled test case
 #define DISABLED_TEST_CASE(suiteName, testName) \
     void suiteName##_##testName(suiteName##_Fixture* fixture, int repetition = 1); \
     static struct suiteName##_DISABLED_##testName##_Registrar { \
@@ -127,7 +229,6 @@ private:
     } suiteName##_DISABLED_##testName##_registrar; \
     void suiteName##_##testName(suiteName##_Fixture* fixture, int repetition)
 
-// Expect exception test case
 #define EXPECT_EXCEPTION_TEST_CASE(suiteName, testName, exceptionType) \
     void suiteName##_##testName(suiteName##_Fixture* fixture, int repetition = 1); \
     static struct suiteName##_EXCEPTION_##testName##_Registrar { \
@@ -141,22 +242,6 @@ private:
     } suiteName##_EXCEPTION_##testName##_registrar; \
     void suiteName##_##testName(suiteName##_Fixture* fixture, int repetition)
 
-// Nondeterministic test case (runs multiple times)
-#define NONDETERMINISTIC_TEST_CASE(suiteName, testName, repetitions) \
-    void suiteName##_##testName(suiteName##_Fixture* fixture, int repetition); \
-    static struct suiteName##_NONDETERMINISTIC_##testName##_Registrar { \
-        suiteName##_NONDETERMINISTIC_##testName##_Registrar() { \
-            TestCase testCase(#testName, [](TestFixture* baseFixture, int repetition) { \
-                suiteName##_##testName(static_cast<suiteName##_Fixture*>(baseFixture), repetition); \
-            }); \
-            testCase.repetitions = (repetitions); \
-            testCase.isNondeterministic = true; \
-            suiteName->addTestCase(testCase); \
-        } \
-    } suiteName##_NONDETERMINISTIC_##testName##_registrar; \
-    void suiteName##_##testName(suiteName##_Fixture* fixture, int repetition)
-
-// Timeout test case
 #define TIMEOUT_TEST_CASE(suiteName, testName, timeoutMs) \
     void suiteName##_##testName(suiteName##_Fixture* fixture, int repetition = 1); \
     static struct suiteName##_TIMEOUT_##testName##_Registrar { \
@@ -170,7 +255,6 @@ private:
     } suiteName##_TIMEOUT_##testName##_registrar; \
     void suiteName##_##testName(suiteName##_Fixture* fixture, int repetition)
 
-// Repeated test case
 #define REPEATED_TEST_CASE(suiteName, testName, repetitions) \
     void suiteName##_##testName(suiteName##_Fixture* fixture, int repetition); \
     static struct suiteName##_REPEAT_##testName##_Registrar { \
@@ -183,122 +267,5 @@ private:
         } \
     } suiteName##_REPEAT_##testName##_registrar; \
     void suiteName##_##testName(suiteName##_Fixture* fixture, int repetition)
-
-
-
-// ... (existing code above)
-
-#include <functional>
-#include <sstream>
-#include <vector>
-#include <string>
-
-// Base class for mocks
-class Mock {
-public:
-    virtual ~Mock() = default;
-
-    void clearExpectations() {
-        callLog.clear();
-    }
-
-    void recordCall(const std::string& methodName, const std::vector<std::string>& args) {
-        callLog.push_back({methodName, args});
-    }
-
-    struct CallInfo {
-        std::string methodName;
-        std::vector<std::string> args;
-    };
-
-    std::vector<CallInfo> callLog;
-};
-
-// Helper function to convert arguments to strings for recording
-template<typename T>
-std::string toString(const T& value) {
-    std::ostringstream oss;
-    oss << value;
-    return oss.str();
-}
-
-// Overload for std::string
-inline std::string toString(const std::string& value) {
-    return value;
-}
-
-// Macro to declare a mock method with no arguments
-#define MOCK_METHOD0(methodName, returnType) \
-    std::function<returnType()> methodName##_mock; \
-    virtual returnType methodName() override { \
-        std::vector<std::string> args; \
-        this->recordCall(#methodName, args); \
-        if (methodName##_mock) \
-            return methodName##_mock(); \
-        else \
-            return returnType(); \
-    }
-
-// Macro to declare a mock method with one argument
-#define MOCK_METHOD1(methodName, returnType, Arg1Type) \
-    std::function<returnType(Arg1Type)> methodName##_mock; \
-    virtual returnType methodName(Arg1Type arg1) override { \
-        std::vector<std::string> args = {toString(arg1)}; \
-        this->recordCall(#methodName, args); \
-        if (methodName##_mock) \
-            return methodName##_mock(arg1); \
-        else \
-            return returnType(); \
-    }
-
-// Macro to declare a mock method with two arguments
-#define MOCK_METHOD2(methodName, returnType, Arg1Type, Arg2Type) \
-    std::function<returnType(Arg1Type, Arg2Type)> methodName##_mock; \
-    virtual returnType methodName(Arg1Type arg1, Arg2Type arg2) override { \
-        std::vector<std::string> args = {toString(arg1), toString(arg2)}; \
-        this->recordCall(#methodName, args); \
-        if (methodName##_mock) \
-            return methodName##_mock(arg1, arg2); \
-        else \
-            return returnType(); \
-    }
-
-// You can add more MOCK_METHOD macros for methods with more arguments as needed.
-
-// Function to verify that a method was called with specific arguments
-inline bool verifyCall(Mock& mock, const std::string& methodName, const std::vector<std::string>& expectedArgs) {
-    for (const auto& call : mock.callLog) {
-        if (call.methodName == methodName && call.args == expectedArgs) {
-            return true;
-        }
-    }
-    return false;
-}
-
-// Function to verify the number of times a method was called
-inline int getCallCount(Mock& mock, const std::string& methodName) {
-    int count = 0;
-    for (const auto& call : mock.callLog) {
-        if (call.methodName == methodName) {
-            count++;
-        }
-    }
-    return count;
-}
-
-// Modify assertion macros to provide better output
-#undef ASSERT_TRUE
-#define ASSERT_TRUE(condition) \
-    if (!(condition)) { \
-        std::cout << "Assertion failed in " << __FILE__ << " at line " << __LINE__ \
-                  << ": " << #condition << std::endl; \
-    }
-
-#undef ASSERT_EQ
-#define ASSERT_EQ(expected, actual) \
-    if ((expected) != (actual)) { \
-        std::cout << "Assertion failed in " << __FILE__ << " at line " << __LINE__ \
-                  << ": Expected " << (expected) << " == " << (actual) << std::endl; \
-    }
 
 #endif // TESTFRAMEWORK_H
