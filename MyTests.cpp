@@ -13,6 +13,27 @@
 #include <string>
 #include <sstream>
 
+// Global variables to control test complexity and counts
+static int g_primeTestCount = 5000;         // Controls complexity of prime tests
+static int g_numLightTests = 10;            // Controls how many trivial tests to register
+static int g_numModerateTests = 5;          // Controls how many moderate factorial tests to register
+static int g_numHeavyTests = 3;             // Controls how many heavy prime tests to register
+
+extern void setPrimeTestCount(int n) {
+    g_primeTestCount = n;
+}
+
+// You can define similar setters for the number of tests:
+extern void setNumLightTests(int n) {
+    g_numLightTests = n;
+}
+extern void setNumModerateTests(int n) {
+    g_numModerateTests = n;
+}
+extern void setNumHeavyTests(int n) {
+    g_numHeavyTests = n;
+}
+
 // Helper functions
 long long computeLargePrime(int n) {
     int count = 0;
@@ -51,6 +72,10 @@ double computeIntegral(double a, double b, int n) {
     return h * sum;
 }
 
+// ------------------------------
+// Existing Test Suites
+// ------------------------------
+
 // First test suite
 TEST_SUITE(HeavyComputationTestSuite) {
 public:
@@ -63,7 +88,6 @@ public:
     int sharedCounter = 0;
 };
 
-// Register the first test suite
 REGISTER_TEST_SUITE(HeavyComputationTestSuite);
 
 BEFORE_ALL(HeavyComputationTestSuite) {
@@ -75,31 +99,26 @@ AFTER_ALL(HeavyComputationTestSuite) {
 }
 
 BEFORE_EACH(HeavyComputationTestSuite) {
-    // Nothing special before each test in this suite
 }
 
 AFTER_EACH(HeavyComputationTestSuite) {
-    // Nothing special after each test in this suite
 }
 
 /**
- * @brief Compute the 5000th prime concurrently and verify it's positive.
- * Heavy test to demonstrate concurrency.
+ * @brief Compute the g_primeTestCount-th prime concurrently and verify it's positive.
  */
 CONCURRENT_TEST_CASE(HeavyComputationTestSuite, TestComputePrime1) {
-    std::cout << "In TestComputePrime1" << std::endl;
-    int n = 5000;
-    long long prime = computeLargePrime(n);
+    std::cout << "In TestComputePrime1 with prime count: " << g_primeTestCount << std::endl;
+    long long prime = computeLargePrime(g_primeTestCount);
     ASSERT_TRUE(prime > 0);
 }
 
 /**
- * @brief Another concurrent heavy prime computation test.
+ * @brief Another concurrent heavy prime computation test, using g_primeTestCount.
  */
 CONCURRENT_TEST_CASE(HeavyComputationTestSuite, TestComputePrime2) {
-    std::cout << "In TestComputePrime2" << std::endl;
-    int n = 5000;
-    long long prime = computeLargePrime(n);
+    std::cout << "In TestComputePrime2 with prime count: " << g_primeTestCount << std::endl;
+    long long prime = computeLargePrime(g_primeTestCount);
     ASSERT_TRUE(prime > 0);
 }
 
@@ -107,9 +126,8 @@ CONCURRENT_TEST_CASE(HeavyComputationTestSuite, TestComputePrime2) {
  * @brief Sequential baseline prime computation test to compare with concurrent runs.
  */
 TEST_CASE(HeavyComputationTestSuite, TestComputePrimeSequential) {
-    std::cout << "In TestComputePrimeSequential" << std::endl;
-    int n = 5000;
-    long long prime = computeLargePrime(n);
+    std::cout << "In TestComputePrimeSequential with prime count: " << g_primeTestCount << std::endl;
+    long long prime = computeLargePrime(g_primeTestCount);
     ASSERT_TRUE(prime > 0);
 }
 
@@ -294,7 +312,6 @@ public:
     void BeforeEach() override;
     void AfterEach() override;
 
-    // Shared resource for concurrency test
     std::mutex testMutex;
     int sharedValue = 0;
 };
@@ -320,40 +337,35 @@ AFTER_EACH(AdditionalHeavyTests) {
 
 /**
  * @brief Intentionally fails by checking a wrong factorial result.
- * Demonstrates a failing test.
  */
 TEST_CASE(AdditionalHeavyTests, TestFactorialMismatch) {
     std::cout << "In TestFactorialMismatch" << std::endl;
-    long long fact = computeFactorial(10); // 10! = 3628800
+    long long fact = computeFactorial(10);
     ASSERT_EQ(9999999, fact); // Wrong expected result to ensure failure
 }
 
 /**
  * @brief Concurrent increments on a shared variable without proper synchronization.
- * Expect race conditions. This might not fail every time, but it demonstrates concurrency hazards.
  */
 CONCURRENT_TEST_CASE(AdditionalHeavyTests, TestConcurrentIncrements) {
     std::cout << "In TestConcurrentIncrements" << std::endl;
-    // No lock here, we intentionally show that concurrency issues can arise.
     for (int i = 0; i < 100000; ++i) {
         fixture->sharedValue++;
     }
-    // We'll just check that final sharedValue > 0 (always true),
-    // but in real scenarios, you might check a final expected result.
     ASSERT_TRUE(fixture->sharedValue >= 0);
 }
 
 /**
- * @brief A test that times out intentionally, heavy sleep exceeds given timeout.
+ * @brief A test that times out intentionally.
  */
 TIMEOUT_TEST_CASE(AdditionalHeavyTests, TestLongRunningComputation, 500) {
     std::cout << "In TestLongRunningComputation" << std::endl;
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-    ASSERT_TRUE(true); // We'll never reach here successfully before timeout
+    ASSERT_TRUE(true);
 }
 
 /**
- * @brief Test expecting a logic_error to be thrown.
+ * @brief Test expecting a logic_error.
  */
 EXPECT_EXCEPTION_TEST_CASE(AdditionalHeavyTests, TestThrowLogicError, std::logic_error) {
     std::cout << "In TestThrowLogicError" << std::endl;
@@ -369,21 +381,99 @@ DISABLED_TEST_CASE(AdditionalHeavyTests, TestDisabledCheck) {
 }
 
 /**
- * @brief Compute integral of sin(x)*exp(-x) from 0 to 10 and check result in an expected range.
- * Demonstrates a heavy numeric computation test.
+ * @brief Compute integral and check range.
  */
 TEST_CASE(AdditionalHeavyTests, TestApproxIntegral) {
     std::cout << "In TestApproxIntegral" << std::endl;
     double result = computeIntegral(0, 10, 100000);
-    // Integral ~0.45 to 0.5 range for sin(x)*e^(-x) from 0 to 10
     ASSERT_TRUE(result > 0.45 && result < 0.5);
 }
 
 /**
- * @brief Intentionally fail to show test reporting of failures.
+ * @brief Intentionally fail.
  */
 TEST_CASE(AdditionalHeavyTests, TestFailOnPurpose) {
     std::cout << "In TestFailOnPurpose" << std::endl;
-    ASSERT_TRUE(false); // Intentionally fail
+    ASSERT_TRUE(false);
 }
 
+
+// ------------------------------
+// New Test Suites for Performance Measurement
+// ------------------------------
+
+// 1) ManyLightTestsSuite: a large number of trivial tests (controlled by g_numLightTests)
+TEST_SUITE(ManyLightTestsSuite) {
+public:
+    void BeforeAll() override { std::cout << "BeforeAll in ManyLightTestsSuite" << std::endl; }
+    void AfterAll() override { std::cout << "AfterAll in ManyLightTestsSuite" << std::endl; }
+    void BeforeEach() override {}
+    void AfterEach() override {}
+};
+
+REGISTER_TEST_SUITE(ManyLightTestsSuite);
+
+// Dynamically create many trivial tests
+static struct ManyLightTests_Registrar {
+    ManyLightTests_Registrar() {
+        for (int i = 0; i < g_numLightTests; ++i) {
+            std::string testName = "LightTest_" + std::to_string(i);
+            TestCase testCase(testName, [](TestFixture*, int) {
+                ASSERT_TRUE(true);
+            });
+            ManyLightTestsSuite->addTestCase(testCase);
+        }
+    }
+} ManyLightTests_registrar;
+
+
+// 2) ModerateTestsSuite: a moderate number of tests performing factorial computations
+TEST_SUITE(ModerateTestsSuite) {
+public:
+    void BeforeAll() override { std::cout << "BeforeAll in ModerateTestsSuite" << std::endl; }
+    void AfterAll() override { std::cout << "AfterAll in ModerateTestsSuite" << std::endl; }
+    void BeforeEach() override {}
+    void AfterEach() override {}
+};
+
+REGISTER_TEST_SUITE(ModerateTestsSuite);
+
+static struct ModerateTests_Registrar {
+    ModerateTests_Registrar() {
+        for (int i = 0; i < g_numModerateTests; ++i) {
+            std::string testName = "FactorialTest_" + std::to_string(i);
+            // Each test computes factorial(10000) for moderate complexity
+            TestCase testCase(testName, [](TestFixture*, int) {
+                long long fact = computeFactorial(10000);
+                ASSERT_TRUE(fact > 0); // Just a sanity check
+            });
+            ModerateTestsSuite->addTestCase(testCase);
+        }
+    }
+} ModerateTests_registrar;
+
+
+// 3) HeavyPrimeTestsSuite: a few heavy tests each computing a large prime (controlled by g_primeTestCount and g_numHeavyTests)
+TEST_SUITE(HeavyPrimeTestsSuite) {
+public:
+    void BeforeAll() override { std::cout << "BeforeAll in HeavyPrimeTestsSuite" << std::endl; }
+    void AfterAll() override { std::cout << "AfterAll in HeavyPrimeTestsSuite" << std::endl; }
+    void BeforeEach() override {}
+    void AfterEach() override {}
+};
+
+REGISTER_TEST_SUITE(HeavyPrimeTestsSuite);
+
+static struct HeavyPrimeTests_Registrar {
+    HeavyPrimeTests_Registrar() {
+        for (int i = 0; i < g_numHeavyTests; ++i) {
+            std::string testName = "HeavyPrimeTest_" + std::to_string(i);
+            // Each test computes a large prime with g_primeTestCount
+            TestCase testCase(testName, [](TestFixture*, int) {
+                long long prime = computeLargePrime(g_primeTestCount);
+                ASSERT_TRUE(prime > 0);
+            });
+            HeavyPrimeTestsSuite->addTestCase(testCase);
+        }
+    }
+} HeavyPrimeTests_registrar;

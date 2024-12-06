@@ -1,2 +1,10 @@
 /cmake-build-debug/
 /.idea/
+*.csv
+*.exe
+*.out
+*.dll
+*.so
+*.o
+*.a
+*.dylib
