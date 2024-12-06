@@ -132,5 +132,5 @@ g++ -std=c++11 -pthread -o run_main main.cpp TestFramework.cpp MyTests.cpp
 ```
 
 ## Citation:
-The Macros (ideas and structures) were inspired by GPT's magical power
+The idea of using Macros were inspired by GPT's magical power. We also used GPT for some syntactic support.
 We also consulted with C++ Manual Devdocs and Professor Stroustrup's A Tour of C++
