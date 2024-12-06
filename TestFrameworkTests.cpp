@@ -30,25 +30,25 @@ REGISTER_TEST_SUITE(TestFrameworkInternalTests);
 
 /**
  * @brief A simple passing test to confirm normal operation.
- * Expectation: Framework prints normal messages, no failures.
+ * Expectation: No "Assertion failed" message since it should pass.
  */
 TEST_CASE(TestFrameworkInternalTests, TestSimplePass) {
     std::cout << "Running TestSimplePass: This should pass." << std::endl;
-    ASSERT_TRUE(1 + 1 == 2);
+    ASSERT_TRUE(1 + 1 == 2); // Should pass without printing "Assertion failed"
 }
 
 /**
  * @brief A failing test to confirm the framework reports assertion failures.
- * Expectation: Framework prints an assertion failure message.
+ * Expectation: "Assertion failed" message will appear.
  */
 TEST_CASE(TestFrameworkInternalTests, TestSimpleFail) {
     std::cout << "Running TestSimpleFail: This should fail." << std::endl;
-    ASSERT_TRUE(false);
+    ASSERT_TRUE(false); // Will cause "Assertion failed" message
 }
 
 /**
  * @brief A disabled test to confirm it doesn't run.
- * Expectation: Framework prints "Skipping Disabled Test Case" and never executes.
+ * Expectation: "Skipping Disabled Test Case: TestDisabledCheck"
  */
 DISABLED_TEST_CASE(TestFrameworkInternalTests, TestDisabledCheck) {
     std::cout << "Running TestDisabledCheck: This should never run." << std::endl;
@@ -57,7 +57,7 @@ DISABLED_TEST_CASE(TestFrameworkInternalTests, TestDisabledCheck) {
 
 /**
  * @brief Test expecting a std::runtime_error to validate exception handling.
- * Expectation: Framework acknowledges expected exception and doesn't mark as failure.
+ * Expectation: The framework handles the expected exception without error.
  */
 EXPECT_EXCEPTION_TEST_CASE(TestFrameworkInternalTests, TestExpectedException, std::runtime_error) {
     std::cout << "Running TestExpectedException: Will throw std::runtime_error." << std::endl;
@@ -66,28 +66,26 @@ EXPECT_EXCEPTION_TEST_CASE(TestFrameworkInternalTests, TestExpectedException, st
 
 /**
  * @brief Test that throws an unexpected exception type.
- * Expectation: Framework reports unexpected exception type.
+ * Expectation: "Unexpected exception thrown in test 'TestUnexpectedException" should appear.
  */
 TEST_CASE(TestFrameworkInternalTests, TestUnexpectedException) {
     std::cout << "Running TestUnexpectedException: Will throw std::logic_error (not expected)." << std::endl;
-    // Not marked as EXPECT_EXCEPTION, so this is unexpected.
     throw std::logic_error("Unexpected exception type thrown");
 }
 
 /**
  * @brief A test that times out intentionally.
- * Expectation: Framework reports a timeout error.
+ * Expectation: "timed out after" message should appear.
  */
 TIMEOUT_TEST_CASE(TestFrameworkInternalTests, TestTimeoutCase, 200) {
     std::cout << "Running TestTimeoutCase: Will sleep longer than allowed." << std::endl;
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    ASSERT_TRUE(true); // Should never be reached before timeout.
+    ASSERT_TRUE(true); // Should never be reached before timeout
 }
 
 /**
  * @brief A test that runs multiple repetitions, some passing, some failing.
- * We can simulate a fail in one repetition to see how framework handles it.
- * Expectation: One of the repetitions fails, framework should report that.
+ * Expectation: On repetition 2, we fail, resulting in "Assertion failed".
  */
 void TestFrameworkInternalTests_TestRepeatedMixed(TestFrameworkInternalTests_Fixture* fixture, int repetition) {
     std::cout << "Running TestRepeatedMixed (Repetition " << repetition << "): "

@@ -112,13 +112,20 @@ int main() {
 ## How to Compile and Run
 Assuming all files are in the same folder and using a common compiler (like `g++`):
 
-### Running main.cpp
+### Running main.cpp (for performance measurement)
 ```bash
 g++ -std=c++11 -pthread -o run_main main.cpp TestFramework.cpp MyTests.cpp
 ./run_main
 ```
 
-### Running main.cpp
+### Running RunInternalTests.cpp (for internal unit tests)
 ```bash
 g++ -std=c++11 -pthread -o run_internal RunInternalTests.cpp TestFramework.cpp MyTests.cpp
 ./run_internal
+```
+
+### Running demo_main.cpp (for demo)
+```bash
+ g++ -o demo demo_main.cpp MyTests.cpp TestFramework.cpp -pthread -std=c++11
+./demo
+```
