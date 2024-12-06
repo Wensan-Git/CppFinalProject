@@ -130,3 +130,7 @@ g++ -std=c++11 -pthread -o run_internal RunInternalTests.cpp TestFramework.cpp M
 g++ -std=c++11 -pthread -o run_main main.cpp TestFramework.cpp MyTests.cpp
 ./run_main
 ```
+
+## Citation:
+The Macros (ideas and structures) were inspired by GPT's magical power
+We also consulted with C++ Manual Devdocs and Professor Stroustrup's A Tour of C++

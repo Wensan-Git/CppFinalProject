@@ -260,10 +260,10 @@ TEST_CASE(HeavyComputationTestSuite, TestAdvancedMockingNoArgsMethod) {
 // ArrayTestSuite
 TEST_SUITE(ArrayTestSuite) {
 public:
-    std::vector<int> largeArray; // Shared state within the fixture
+    std::vector<int> largeArray;
 
     void BeforeAll() override;
-    void BeforeEach() override;  // We'll add this to re-initialize largeArray before each test
+    void BeforeEach() override;
 };
 
 REGISTER_TEST_SUITE(ArrayTestSuite);
