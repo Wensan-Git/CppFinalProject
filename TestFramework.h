@@ -12,7 +12,6 @@
 #include <future>
 #include <sstream>
 
-// Base class for test fixtures
 /**
  * @brief A base fixture class that can be inherited by test suites to define shared setup/teardown logic.
  *
@@ -140,7 +139,6 @@ private:
     TestRunner() = default;
 };
 
-// Assertion macros
 /**
  * @brief Asserts that a given condition is true.
  * Prints an error message if the assertion fails.
@@ -166,7 +164,6 @@ private:
                   << ": Expected " << (expected) << " == " << (actual) << std::endl; \
     }
 
-// Helper to convert arguments to strings
 /**
  * @brief Converts a value to its string representation.
  * @tparam T The type of the value.
@@ -180,7 +177,6 @@ std::string toString(const T& value) {
     return oss.str();
 }
 
-// Overload for std::string
 /**
  * @brief Converts a std::string to itself, acting as a pass-through.
  * @param value A std::string value.
@@ -215,7 +211,6 @@ std::vector<std::string> argsToString(T&& first, Args&&... rest) {
     return result;
 }
 
-// Base class for mocks
 /**
  * @brief A base class for creating mock objects that record and verify method calls.
  *
@@ -250,7 +245,6 @@ public:
     std::vector<CallInfo> callLog;
 };
 
-// Functions to verify calls on mocks
 /**
  * @brief Checks if a specified call with certain arguments was recorded on a mock.
  * @param mock The mock object to check.
@@ -284,7 +278,6 @@ inline int getCallCount(Mock& mock, const std::string& methodName) {
 }
 
 
-// Test suite macros
 /**
  * @brief Declares a new test suite and defines its fixture class.
  * @param suiteName The name of the test suite.
