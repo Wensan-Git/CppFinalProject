@@ -13,8 +13,7 @@
 #include <string>
 #include <sstream>
 
-
-// Helper functions first
+// Helper functions
 long long computeLargePrime(int n) {
     int count = 0;
     long long num = 2;
@@ -52,7 +51,7 @@ double computeIntegral(double a, double b, int n) {
     return h * sum;
 }
 
-// Define the test suite and fixture
+// First test suite
 TEST_SUITE(HeavyComputationTestSuite) {
 public:
     void BeforeAll() override;
@@ -64,25 +63,29 @@ public:
     int sharedCounter = 0;
 };
 
-// Register the test suite
+// Register the first test suite
 REGISTER_TEST_SUITE(HeavyComputationTestSuite);
 
-// Implement fixture methods
 BEFORE_ALL(HeavyComputationTestSuite) {
-    std::cout << "Executing BeforeAll: Setting up resources." << std::endl;
+    std::cout << "Executing BeforeAll: Setting up resources for HeavyComputationTestSuite." << std::endl;
 }
 
 AFTER_ALL(HeavyComputationTestSuite) {
-    std::cout << "Executing AfterAll: Cleaning up resources." << std::endl;
+    std::cout << "Executing AfterAll: Cleaning up resources for HeavyComputationTestSuite." << std::endl;
 }
 
 BEFORE_EACH(HeavyComputationTestSuite) {
+    // Nothing special before each test in this suite
 }
 
 AFTER_EACH(HeavyComputationTestSuite) {
+    // Nothing special after each test in this suite
 }
 
-// Regular test cases
+/**
+ * @brief Compute the 5000th prime concurrently and verify it's positive.
+ * Heavy test to demonstrate concurrency.
+ */
 CONCURRENT_TEST_CASE(HeavyComputationTestSuite, TestComputePrime1) {
     std::cout << "In TestComputePrime1" << std::endl;
     int n = 5000;
@@ -90,6 +93,9 @@ CONCURRENT_TEST_CASE(HeavyComputationTestSuite, TestComputePrime1) {
     ASSERT_TRUE(prime > 0);
 }
 
+/**
+ * @brief Another concurrent heavy prime computation test.
+ */
 CONCURRENT_TEST_CASE(HeavyComputationTestSuite, TestComputePrime2) {
     std::cout << "In TestComputePrime2" << std::endl;
     int n = 5000;
@@ -97,6 +103,9 @@ CONCURRENT_TEST_CASE(HeavyComputationTestSuite, TestComputePrime2) {
     ASSERT_TRUE(prime > 0);
 }
 
+/**
+ * @brief Sequential baseline prime computation test to compare with concurrent runs.
+ */
 TEST_CASE(HeavyComputationTestSuite, TestComputePrimeSequential) {
     std::cout << "In TestComputePrimeSequential" << std::endl;
     int n = 5000;
@@ -104,23 +113,32 @@ TEST_CASE(HeavyComputationTestSuite, TestComputePrimeSequential) {
     ASSERT_TRUE(prime > 0);
 }
 
+/**
+ * @brief Disabled test should never run.
+ */
 DISABLED_TEST_CASE(HeavyComputationTestSuite, TestDisabled) {
     std::cout << "This test should not run." << std::endl;
     ASSERT_TRUE(false);
 }
 
+/**
+ * @brief Test expecting a runtime_error exception.
+ */
 EXPECT_EXCEPTION_TEST_CASE(HeavyComputationTestSuite, TestExpectException, std::runtime_error) {
     std::cout << "In TestExpectException" << std::endl;
     throw std::runtime_error("Expected exception");
 }
 
+/**
+ * @brief Test that will timeout because it sleeps longer than allowed.
+ */
 TIMEOUT_TEST_CASE(HeavyComputationTestSuite, TestTimeout, 500) {
     std::cout << "In TestTimeout" << std::endl;
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     ASSERT_TRUE(true);
 }
 
-// Define the nondeterministic test case
+// Nondeterministic test case
 void HeavyComputationTestSuite_TestNondeterministic(HeavyComputationTestSuite_Fixture* fixture, int repetition) {
     std::mt19937 rng(std::random_device{}());
     std::uniform_int_distribution<int> dist(100, 300);
@@ -137,14 +155,14 @@ void HeavyComputationTestSuite_TestNondeterministic(HeavyComputationTestSuite_Fi
     ASSERT_TRUE(true);
 }
 
-// Register the nondeterministic test case
+// Register the nondeterministic test
 static struct HeavyComputationTestSuite_TestNondeterministic_Registrar {
     HeavyComputationTestSuite_TestNondeterministic_Registrar() {
         TestCase testCase("TestNondeterministic",
                           [](TestFixture* baseFixture, int repetition) {
                               HeavyComputationTestSuite_TestNondeterministic(
-                                      static_cast<HeavyComputationTestSuite_Fixture*>(baseFixture),
-                                      repetition
+                                  static_cast<HeavyComputationTestSuite_Fixture*>(baseFixture),
+                                  repetition
                               );
                           }
         );
@@ -154,21 +172,21 @@ static struct HeavyComputationTestSuite_TestNondeterministic_Registrar {
     }
 } HeavyComputationTestSuite_TestNondeterministic_registrar;
 
-// Define the repeated test case
+// Repeated test case
 void HeavyComputationTestSuite_TestRepeated(HeavyComputationTestSuite_Fixture* fixture, int repetition) {
     std::cout << "In TestRepeated, Repetition " << repetition << std::endl;
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
     ASSERT_TRUE(true);
 }
 
-// Register the repeated test case
+// Register the repeated test
 static struct HeavyComputationTestSuite_TestRepeated_Registrar {
     HeavyComputationTestSuite_TestRepeated_Registrar() {
         TestCase testCase("TestRepeated",
                           [](TestFixture* baseFixture, int repetition) {
                               HeavyComputationTestSuite_TestRepeated(
-                                      static_cast<HeavyComputationTestSuite_Fixture*>(baseFixture),
-                                      repetition
+                                  static_cast<HeavyComputationTestSuite_Fixture*>(baseFixture),
+                                  repetition
                               );
                           }
         );
@@ -178,13 +196,11 @@ static struct HeavyComputationTestSuite_TestRepeated_Registrar {
 } HeavyComputationTestSuite_TestRepeated_registrar;
 
 
-// More complex mocked class
+// Mock-related tests
 class AdvancedCalculator {
 public:
     virtual ~AdvancedCalculator() = default;
-    virtual int add3(int a, int b, int c) {
-        return a + b + c;
-    }
+    virtual int add3(int a, int b, int c) { return a + b + c; }
     virtual std::string concatStrings(const std::string& s1, const std::string& s2, const std::string& s3) {
         return s1 + s2 + s3;
     }
@@ -202,6 +218,9 @@ public:
     MOCK_METHOD(noArgsMethod, void, (), ());
 };
 
+/**
+ * @brief Tests mocking add3 to add an extra 10.
+ */
 TEST_CASE(HeavyComputationTestSuite, TestAdvancedMockingAdd3) {
     std::cout << "In TestAdvancedMockingAdd3" << std::endl;
 
@@ -215,6 +234,9 @@ TEST_CASE(HeavyComputationTestSuite, TestAdvancedMockingAdd3) {
     ASSERT_EQ(16, result);
 }
 
+/**
+ * @brief Tests mocking concatStrings to insert dashes instead of direct concatenation.
+ */
 TEST_CASE(HeavyComputationTestSuite, TestAdvancedMockingConcatStrings) {
     std::cout << "In TestAdvancedMockingConcatStrings" << std::endl;
 
@@ -228,6 +250,9 @@ TEST_CASE(HeavyComputationTestSuite, TestAdvancedMockingConcatStrings) {
     ASSERT_EQ("Hello-Mock-World", result);
 }
 
+/**
+ * @brief Tests mocking multiplyMany to add 5.0 to the product.
+ */
 TEST_CASE(HeavyComputationTestSuite, TestAdvancedMockingMultiplyMany) {
     std::cout << "In TestAdvancedMockingMultiplyMany" << std::endl;
 
@@ -241,6 +266,9 @@ TEST_CASE(HeavyComputationTestSuite, TestAdvancedMockingMultiplyMany) {
     ASSERT_EQ(125.0, result);
 }
 
+/**
+ * @brief Tests mocking noArgsMethod to just set a boolean flag.
+ */
 TEST_CASE(HeavyComputationTestSuite, TestAdvancedMockingNoArgsMethod) {
     std::cout << "In TestAdvancedMockingNoArgsMethod" << std::endl;
 
@@ -254,3 +282,108 @@ TEST_CASE(HeavyComputationTestSuite, TestAdvancedMockingNoArgsMethod) {
     ASSERT_TRUE(verifyCall(mockCalc, "noArgsMethod", {}));
     ASSERT_TRUE(called);
 }
+
+
+// ------------------------------
+// Additional test suite to show more failing and heavy tests
+// ------------------------------
+TEST_SUITE(AdditionalHeavyTests) {
+public:
+    void BeforeAll() override;
+    void AfterAll() override;
+    void BeforeEach() override;
+    void AfterEach() override;
+
+    // Shared resource for concurrency test
+    std::mutex testMutex;
+    int sharedValue = 0;
+};
+
+REGISTER_TEST_SUITE(AdditionalHeavyTests);
+
+BEFORE_ALL(AdditionalHeavyTests) {
+    std::cout << "BeforeAll in AdditionalHeavyTests: Setting up." << std::endl;
+}
+
+AFTER_ALL(AdditionalHeavyTests) {
+    std::cout << "AfterAll in AdditionalHeavyTests: Tearing down." << std::endl;
+}
+
+BEFORE_EACH(AdditionalHeavyTests) {
+    std::cout << "BeforeEach in AdditionalHeavyTests: Resetting sharedValue." << std::endl;
+    sharedValue = 0;
+}
+
+AFTER_EACH(AdditionalHeavyTests) {
+    std::cout << "AfterEach in AdditionalHeavyTests." << std::endl;
+}
+
+/**
+ * @brief Intentionally fails by checking a wrong factorial result.
+ * Demonstrates a failing test.
+ */
+TEST_CASE(AdditionalHeavyTests, TestFactorialMismatch) {
+    std::cout << "In TestFactorialMismatch" << std::endl;
+    long long fact = computeFactorial(10); // 10! = 3628800
+    ASSERT_EQ(9999999, fact); // Wrong expected result to ensure failure
+}
+
+/**
+ * @brief Concurrent increments on a shared variable without proper synchronization.
+ * Expect race conditions. This might not fail every time, but it demonstrates concurrency hazards.
+ */
+CONCURRENT_TEST_CASE(AdditionalHeavyTests, TestConcurrentIncrements) {
+    std::cout << "In TestConcurrentIncrements" << std::endl;
+    // No lock here, we intentionally show that concurrency issues can arise.
+    for (int i = 0; i < 100000; ++i) {
+        fixture->sharedValue++;
+    }
+    // We'll just check that final sharedValue > 0 (always true),
+    // but in real scenarios, you might check a final expected result.
+    ASSERT_TRUE(fixture->sharedValue >= 0);
+}
+
+/**
+ * @brief A test that times out intentionally, heavy sleep exceeds given timeout.
+ */
+TIMEOUT_TEST_CASE(AdditionalHeavyTests, TestLongRunningComputation, 500) {
+    std::cout << "In TestLongRunningComputation" << std::endl;
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    ASSERT_TRUE(true); // We'll never reach here successfully before timeout
+}
+
+/**
+ * @brief Test expecting a logic_error to be thrown.
+ */
+EXPECT_EXCEPTION_TEST_CASE(AdditionalHeavyTests, TestThrowLogicError, std::logic_error) {
+    std::cout << "In TestThrowLogicError" << std::endl;
+    throw std::logic_error("Deliberate logic_error thrown");
+}
+
+/**
+ * @brief Disabled test that should never run.
+ */
+DISABLED_TEST_CASE(AdditionalHeavyTests, TestDisabledCheck) {
+    std::cout << "This test should not run." << std::endl;
+    ASSERT_TRUE(false);
+}
+
+/**
+ * @brief Compute integral of sin(x)*exp(-x) from 0 to 10 and check result in an expected range.
+ * Demonstrates a heavy numeric computation test.
+ */
+TEST_CASE(AdditionalHeavyTests, TestApproxIntegral) {
+    std::cout << "In TestApproxIntegral" << std::endl;
+    double result = computeIntegral(0, 10, 100000);
+    // Integral ~0.45 to 0.5 range for sin(x)*e^(-x) from 0 to 10
+    ASSERT_TRUE(result > 0.45 && result < 0.5);
+}
+
+/**
+ * @brief Intentionally fail to show test reporting of failures.
+ */
+TEST_CASE(AdditionalHeavyTests, TestFailOnPurpose) {
+    std::cout << "In TestFailOnPurpose" << std::endl;
+    ASSERT_TRUE(false); // Intentionally fail
+}
+

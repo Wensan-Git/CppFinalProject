@@ -6,4 +6,6 @@ set(CMAKE_CXX_STANDARD 20)
 add_executable(Project main.cpp
         MyTests.cpp
         TestFramework.cpp
-        TestFramework.h)
+        TestFramework.h
+        RunInternalTests.cpp
+        TestFrameworkTests.cpp)
