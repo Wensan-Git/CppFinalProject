@@ -67,6 +67,30 @@ build CMakeFiles/Project.dir/TestFramework.cpp.o: CXX_COMPILER__Project_unscanne
   OBJECT_DIR = CMakeFiles/Project.dir
   OBJECT_FILE_DIR = CMakeFiles/Project.dir
 
+build CMakeFiles/Project.dir/RunInternalTests.cpp.o: CXX_COMPILER__Project_unscanned_Debug /Users/jiachengyin/Desktop/Columbia$ Classes/Design$ in$ C++/FinalProject/Project/RunInternalTests.cpp || cmake_object_order_depends_target_Project
+  DEP_FILE = CMakeFiles/Project.dir/RunInternalTests.cpp.o.d
+  FLAGS = -g -std=gnu++20 -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.2.sdk -mmacosx-version-min=13.5 -fcolor-diagnostics
+  OBJECT_DIR = CMakeFiles/Project.dir
+  OBJECT_FILE_DIR = CMakeFiles/Project.dir
+
+build CMakeFiles/Project.dir/TestFrameworkTests.cpp.o: CXX_COMPILER__Project_unscanned_Debug /Users/jiachengyin/Desktop/Columbia$ Classes/Design$ in$ C++/FinalProject/Project/TestFrameworkTests.cpp || cmake_object_order_depends_target_Project
+  DEP_FILE = CMakeFiles/Project.dir/TestFrameworkTests.cpp.o.d
+  FLAGS = -g -std=gnu++20 -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.2.sdk -mmacosx-version-min=13.5 -fcolor-diagnostics
+  OBJECT_DIR = CMakeFiles/Project.dir
+  OBJECT_FILE_DIR = CMakeFiles/Project.dir
+
+build CMakeFiles/Project.dir/demo_main.cpp.o: CXX_COMPILER__Project_unscanned_Debug /Users/jiachengyin/Desktop/Columbia$ Classes/Design$ in$ C++/FinalProject/Project/demo_main.cpp || cmake_object_order_depends_target_Project
+  DEP_FILE = CMakeFiles/Project.dir/demo_main.cpp.o.d
+  FLAGS = -g -std=gnu++20 -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.2.sdk -mmacosx-version-min=13.5 -fcolor-diagnostics
+  OBJECT_DIR = CMakeFiles/Project.dir
+  OBJECT_FILE_DIR = CMakeFiles/Project.dir
+
+build CMakeFiles/Project.dir/DemoTests.cpp.o: CXX_COMPILER__Project_unscanned_Debug /Users/jiachengyin/Desktop/Columbia$ Classes/Design$ in$ C++/FinalProject/Project/DemoTests.cpp || cmake_object_order_depends_target_Project
+  DEP_FILE = CMakeFiles/Project.dir/DemoTests.cpp.o.d
+  FLAGS = -g -std=gnu++20 -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.2.sdk -mmacosx-version-min=13.5 -fcolor-diagnostics
+  OBJECT_DIR = CMakeFiles/Project.dir
+  OBJECT_FILE_DIR = CMakeFiles/Project.dir
+
 
 # =============================================================================
 # Link build statements for EXECUTABLE target Project
@@ -75,7 +99,7 @@ build CMakeFiles/Project.dir/TestFramework.cpp.o: CXX_COMPILER__Project_unscanne
 #############################################
 # Link the executable Project
 
-build Project: CXX_EXECUTABLE_LINKER__Project_Debug CMakeFiles/Project.dir/main.cpp.o CMakeFiles/Project.dir/MyTests.cpp.o CMakeFiles/Project.dir/TestFramework.cpp.o
+build Project: CXX_EXECUTABLE_LINKER__Project_Debug CMakeFiles/Project.dir/main.cpp.o CMakeFiles/Project.dir/MyTests.cpp.o CMakeFiles/Project.dir/TestFramework.cpp.o CMakeFiles/Project.dir/RunInternalTests.cpp.o CMakeFiles/Project.dir/TestFrameworkTests.cpp.o CMakeFiles/Project.dir/demo_main.cpp.o CMakeFiles/Project.dir/DemoTests.cpp.o
   FLAGS = -g -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.2.sdk -mmacosx-version-min=13.5
   OBJECT_DIR = CMakeFiles/Project.dir
   POST_BUILD = :

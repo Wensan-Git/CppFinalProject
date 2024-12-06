@@ -102,7 +102,7 @@ int main() {
 
 ### Files:
 - **TestFramework.h / TestFramework.cpp**: Core framework files providing test infrastructure, macros, test runner, and assertions.
-- **MyTests.cpp**: Contains tests that you write to verify the correctness of your own application's logic and functionalities. These tests illustrate how you would use the framework in practice, targeting the functions and classes you develop.
+- **MyTests.cpp / DemoTests.cpp**: Contains tests that you write to verify the correctness of your own application's logic and functionalities. These tests illustrate how you would use the framework in practice, targeting the functions and classes you develop.
 - **TestFrameworkTests.cpp**: Contains internal tests designed to confirm that the testing framework itself behaves as expected. Instead of verifying your application code, these tests ensure that the framework correctly handles scenarios such as passing/failing tests, timeouts, exceptions, repeated tests, and disabled tests. In other words, they validate the robustness and reliability of the testing system itself.
 
 - **main.cpp**: Entry point that runs all tests (from both `MyTests.cpp` and `TestFrameworkTests.cpp`) sequentially and then concurrently, measuring performance and demonstrating the impact of parallel execution.
@@ -112,11 +112,6 @@ int main() {
 ## How to Compile and Run
 Assuming all files are in the same folder and using a common compiler (like `g++`):
 
-### Running main.cpp (for performance measurement)
-```bash
-g++ -std=c++11 -pthread -o run_main main.cpp TestFramework.cpp MyTests.cpp
-./run_main
-```
 
 ### Running RunInternalTests.cpp (for internal unit tests)
 ```bash
@@ -126,6 +121,12 @@ g++ -std=c++11 -pthread -o run_internal RunInternalTests.cpp TestFramework.cpp M
 
 ### Running demo_main.cpp (for demo)
 ```bash
- g++ -o demo demo_main.cpp MyTests.cpp TestFramework.cpp -pthread -std=c++11
+ g++ -o demo demo_main.cpp DemoTests.cpp TestFramework.cpp -pthread -std=c++11
 ./demo
+```
+
+### Running main.cpp (for performance measurement)
+```bash
+g++ -std=c++11 -pthread -o run_main main.cpp TestFramework.cpp MyTests.cpp
+./run_main
 ```

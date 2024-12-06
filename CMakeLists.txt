@@ -9,4 +9,5 @@ add_executable(Project main.cpp
         TestFramework.h
         RunInternalTests.cpp
         TestFrameworkTests.cpp
-        demo_main.cpp)
+        demo_main.cpp
+        DemoTests.cpp)
