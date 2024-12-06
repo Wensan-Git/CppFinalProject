@@ -157,17 +157,6 @@ inline int getCallCount(Mock& mock, const std::string& methodName) {
 }
 
 
-#define MOCK_METHOD(methodName, returnType, PARAMS, ARGS) \
-    std::function<returnType PARAMS> methodName##_mock; \
-    virtual returnType methodName PARAMS override { \
-        std::vector<std::string> args = argsToString ARGS; \
-        this->recordCall(#methodName, args); \
-        if (methodName##_mock) \
-            return methodName##_mock ARGS; \
-        else \
-            return returnType(); \
-    }
-
 // Test suite macros
 #define TEST_SUITE(suiteName) \
     class suiteName##_Fixture : public TestFixture
@@ -267,5 +256,16 @@ inline int getCallCount(Mock& mock, const std::string& methodName) {
         } \
     } suiteName##_REPEAT_##testName##_registrar; \
     void suiteName##_##testName(suiteName##_Fixture* fixture, int repetition)
+
+#define MOCK_METHOD(methodName, returnType, PARAMS, ARGS) \
+    std::function<returnType PARAMS> methodName##_mock; \
+    virtual returnType methodName PARAMS override { \
+        std::vector<std::string> args = argsToString ARGS; \
+        this->recordCall(#methodName, args); \
+        if (methodName##_mock) \
+            return methodName##_mock ARGS; \
+        else \
+            return returnType(); \
+    }
 
 #endif // TESTFRAMEWORK_H

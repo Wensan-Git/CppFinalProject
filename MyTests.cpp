@@ -14,7 +14,6 @@
 #include <sstream>
 
 
-
 // Helper functions first
 long long computeLargePrime(int n) {
     int count = 0;
